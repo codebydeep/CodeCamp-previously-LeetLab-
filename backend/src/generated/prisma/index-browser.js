@@ -207,6 +207,40 @@ exports.Prisma.ProblemInPlaylistScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.RoomScalarFieldEnum = {
+  id: 'id',
+  roomCode: 'roomCode',
+  problemId: 'problemId',
+  createdBy: 'createdBy',
+  isActive: 'isActive',
+  expiresAt: 'expiresAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.RoomParticipantScalarFieldEnum = {
+  id: 'id',
+  roomId: 'roomId',
+  userId: 'userId',
+  joinedAt: 'joinedAt'
+};
+
+exports.Prisma.RoomMessageScalarFieldEnum = {
+  id: 'id',
+  roomId: 'roomId',
+  userId: 'userId',
+  message: 'message',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.CodeSnapshotScalarFieldEnum = {
+  id: 'id',
+  roomId: 'roomId',
+  code: 'code',
+  language: 'language',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -249,7 +283,11 @@ exports.Prisma.ModelName = {
   TestCaseResult: 'TestCaseResult',
   ProblemSolved: 'ProblemSolved',
   Playlist: 'Playlist',
-  ProblemInPlaylist: 'ProblemInPlaylist'
+  ProblemInPlaylist: 'ProblemInPlaylist',
+  Room: 'Room',
+  RoomParticipant: 'RoomParticipant',
+  RoomMessage: 'RoomMessage',
+  CodeSnapshot: 'CodeSnapshot'
 };
 
 /**

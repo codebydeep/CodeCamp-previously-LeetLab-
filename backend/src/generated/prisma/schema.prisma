@@ -33,8 +33,11 @@ model User {
   problems   Problem[]
   submission Submission[]
 
-  ProblemSolved ProblemSolved[]
-  playlists     Playlist[]
+  ProblemSolved    ProblemSolved[]
+  playlists        Playlist[]
+  rooms            Room[]
+  roomParticipants RoomParticipant[]
+  roomMessages     RoomMessage[]
 }
 
 enum Difficulty {
@@ -68,6 +71,7 @@ model Problem {
   submission        Submission[]
   solvedBy          ProblemSolved[]
   problemsPlaylists ProblemInPlaylist[]
+  rooms             Room[]
 }
 
 // Submission model -
@@ -160,4 +164,60 @@ model ProblemInPlaylist {
   problem  Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
 
   @@unique([playListId, problemId])
+}
+
+model Room {
+  id        String @id @default(uuid())
+  roomCode  String @unique
+  problemId String
+  createdBy String
+
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  creator User    @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
+  participants RoomParticipant[]
+  messages     RoomMessage[]
+  codeSnaps    CodeSnapshot[]
+
+  isActive  Boolean  @default(true)
+  expiresAt DateTime @default(dbgenerated("NOW() + interval '2 hours'"))
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RoomParticipant {
+  id     String @id @default(uuid())
+  roomId String
+  userId String
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  joinedAt DateTime @default(now())
+
+  @@unique([roomId, userId])
+}
+
+model RoomMessage {
+  id      String @id @default(uuid())
+  roomId  String
+  userId  String
+  message String
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
+
+model CodeSnapshot {
+  id       String @id @default(uuid())
+  roomId   String
+  code     String
+  language String
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
 }

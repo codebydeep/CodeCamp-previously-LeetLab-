@@ -14,7 +14,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 enum UserRole {
   ADMIN
   USER
@@ -22,22 +21,24 @@ enum UserRole {
 
 // User model -
 model User {
-  id String @id @default(uuid())
-  name String?
-  email String @unique
-  image String? 
-  role UserRole @default(USER)
-  password String
+  id        String   @id @default(uuid())
+  name      String?
+  email     String   @unique
+  image     String?
+  role      UserRole @default(USER)
+  password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  problems Problem[]
+  problems   Problem[]
   submission Submission[]
 
-  ProblemSolved ProblemSolved[]
-  playlists Playlist[]
+  ProblemSolved    ProblemSolved[]
+  playlists        Playlist[]
+  rooms            Room[]
+  roomParticipants RoomParticipant[]
+  roomMessages     RoomMessage[]
 }
-
 
 enum Difficulty {
   EASY
@@ -47,19 +48,19 @@ enum Difficulty {
 
 // Problem model -
 model Problem {
-  id String @id @default(uuid())
-  title String
+  id          String     @id @default(uuid())
+  title       String
   description String
-  difficulty Difficulty
-  tags String[]
-  userId String
-  examples Json
+  difficulty  Difficulty
+  tags        String[]
+  userId      String
+  examples    Json
   constraints String
-  hints String?
-  editorial String?
+  hints       String?
+  editorial   String?
 
-  testcases Json
-  codeSnippets Json
+  testcases         Json
+  codeSnippets      Json
   referenceSolution Json
 
   createdAt DateTime @default(now())
@@ -67,50 +68,49 @@ model Problem {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  submission Submission[]
-  solvedBy ProblemSolved[]
+  submission        Submission[]
+  solvedBy          ProblemSolved[]
   problemsPlaylists ProblemInPlaylist[]
+  rooms             Room[]
 }
-
 
 // Submission model -
 model Submission {
-  id String @id @default(uuid())
-  userId String
-  problemId String
-  sourceCode Json
-  language String
-  stdin String?
-  stdout String?
-  stderr String?
+  id            String  @id @default(uuid())
+  userId        String
+  problemId     String
+  sourceCode    Json
+  language      String
+  stdin         String?
+  stdout        String?
+  stderr        String?
   compileOutput String?
-  status String // Accepted, Wrong answer;
-  memory String?
-  time String?
+  status        String // Accepted, Wrong answer;
+  memory        String?
+  time          String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
 
   testCases TestCaseResult[]
 }
 
-
 // TestCase model -
 model TestCaseResult {
-  id String @id @default(uuid())
-  submissionId String
-  testCase Int
-  passed Boolean
-  stdout String?
-  expected String
-  stderr String?
+  id             String  @id @default(uuid())
+  submissionId   String
+  testCase       Int
+  passed         Boolean
+  stdout         String?
+  expected       String
+  stderr         String?
   compiledOutput String?
-  status String?
-  memory String?
-  time String?
+  status         String?
+  memory         String?
+  time           String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -120,29 +120,27 @@ model TestCaseResult {
   @@index([submissionId])
 }
 
-
 // Problem-Solved model -
 model ProblemSolved {
-  id String @id @default(uuid())
-  userId String
+  id        String @id @default(uuid())
+  userId    String
   problemId String
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
 
   @@index([userId, problemId])
 }
 
-
 // Playlist model -
 model Playlist {
-  id String @id @default(uuid())
-  name String
+  id          String  @id @default(uuid())
+  name        String
   description String?
-  userId String
+  userId      String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -151,20 +149,75 @@ model Playlist {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([name, userId]) 
+  @@unique([name, userId])
 }
 
-
 model ProblemInPlaylist {
-  id String @id @default(uuid())
+  id         String @id @default(uuid())
   playListId String
-  problemId String
+  problemId  String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   playlist Playlist @relation(fields: [playListId], references: [id], onDelete: Cascade)
-  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  problem  Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
 
   @@unique([playListId, problemId])
+}
+
+model Room {
+  id        String @id @default(uuid())
+  roomCode  String @unique
+  problemId String
+  createdBy String
+
+  problem Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  creator User    @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
+  participants RoomParticipant[]
+  messages     RoomMessage[]
+  codeSnaps    CodeSnapshot[]
+
+  isActive  Boolean  @default(true)
+  expiresAt DateTime @default(dbgenerated("NOW() + interval '2 hours'"))
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RoomParticipant {
+  id     String @id @default(uuid())
+  roomId String
+  userId String
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  joinedAt DateTime @default(now())
+
+  @@unique([roomId, userId])
+}
+
+model RoomMessage {
+  id      String @id @default(uuid())
+  roomId  String
+  userId  String
+  message String
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
+
+model CodeSnapshot {
+  id       String @id @default(uuid())
+  roomId   String
+  code     String
+  language String
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
 }

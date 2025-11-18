@@ -93,6 +93,8 @@ const getPlaylistDetails = async (req, res) => {
     }
 }
 
+
+// error - 
 const addProblemToPlaylist = async (req, res) => {
     const {playlistId} = req.params
     const {problemIds} = req.body
@@ -104,7 +106,7 @@ const addProblemToPlaylist = async (req, res) => {
             })
         }
 
-        const problemsInPlaylist = await db.problemsInPlaylist.createMany({
+        const problemsInPlaylist = await db.problemInPlaylist.createMany({
             data: problemIds.map((problemId) => ({
                 playlistId,
                 problemId,
@@ -149,6 +151,8 @@ const deletePlaylist = async (req, res) => {
     }
 }
 
+
+// error - 
 const removeProblemFromPlaylist = async (req, res) => {
     const {playlistId} = req.params
     const {problemIds} = req.body
